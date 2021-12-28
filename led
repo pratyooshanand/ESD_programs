@@ -1,0 +1,18 @@
+//#include <LPC17xx.H> 
+#include "LPC1768_Includes.h"
+int main(void)
+{
+int i;
+//FIO2MASK= 0x00000000;
+PINSEL4=0x00000000;	  // set GPIO on P2.0 to P2.7
+FIO2DIR=0x000000FF;	  // P2.0 to P2.7 set as output port pins
+while(1)
+{
+FIO2SET=0x000000FF;	   // set high on P2.0 to P2.7
+//FIO2PIN0=0x00;
+for(i=0;i<1000000;i++);	// delay
+FIO2CLR=0x000000FF;
+//FIO2PIN0=0x000000FF;  // set low on P2.0 to P2.7
+for(i=0;i<1000000;i++);	// Delay
+}
+}
