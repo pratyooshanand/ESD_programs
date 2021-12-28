@@ -1,0 +1,91 @@
+//#include"lpc214x.h"
+#include "LPC1768_Includes.h"
+#include"image.h"
+#define ldata 0x00000FF0
+#define en 1<<26
+#define rs 1<<25
+#define CS1 1<<27
+#define CS2 1<<28  
+#define rw 1<<29
+
+void Glcdcmd(unsigned char);
+void Glcddata(unsigned int);
+void MSDelay(unsigned int);
+//void Glcd_disp(unsigned char);
+
+void Glcd_disp(unsigned int *temp1)			 //display routine
+{
+int i,j;
+for(i=0;i<8;i++) //page
+ {
+ 	FIO1SET = CS1;								//select controller 1
+ 	FIO1CLR = CS2;  
+ 	Glcdcmd(0xB8 | i);      // Increment page address 
+	Glcdcmd(0x40);
+	for(j=0;j<64;j++)						   //display controller 1 data
+	Glcddata(temp1[(i*128)+j]);
+//Glcddata([*temp1++]+j);
+	FIO1CLR = CS1;							   //select controller 2
+ 	FIO1SET = CS2; 
+ 	Glcdcmd(0xB8 | i);    // Increment page address
+	Glcdcmd(0x40);
+	for(j=64;j<128;j++)						   //display controller 2 data
+	Glcddata(temp1[(i*128)+j]);
+//Glcddata([*temp1++]+j);
+ }
+}
+
+	
+int main()
+{
+PINSEL0=0x00000000;	   // data lines as GPIO
+PINSEL3=0x00000000;	   // Control lines as GPIO
+FIO0DIR= 0x00000FF0 ;	// To set P0.4 to P0.11 as output port pin
+FIO1DIR= 0x3E000000 ;	// To set P0.25 to P0.29 as output port pin
+FIO1SET=CS1;  // set left half 
+FIO1SET=CS2;  // Set Right half
+	
+    Glcdcmd(0x3F);	  //Display ON
+    MSDelay (10);                         	
+	Glcdcmd(0x40);    // Set Y address as 0 (range 0-63)
+	MSDelay (10); 
+	Glcdcmd(0xB8);    //Set X address as 0 (page address)	(range 0-7)
+	MSDelay (2000); 
+	Glcdcmd(0xC0);    // Set Z address (start line=0)
+	MSDelay (2000);    
+	Glcd_disp(temp);  // call display function
+	MSDelay (2000); 
+}
+
+	
+	void Glcdcmd(unsigned char value)
+	{
+		FIO0CLR=ldata;
+		FIO0SET=value<<4; //LCD_SHIFT;
+		FIO1CLR=rs;      // rs=0 command/Instruction register
+	    FIO1CLR=rw;     // R/W=0 Write operation
+		FIO1SET=en;	   // Activate Enable
+		MSDelay(10);
+		FIO1CLR=en;
+	}
+	void Glcddata(unsigned int data)
+	{
+		
+		FIO1CLR=ldata;
+		FIO1SET=data<<4; //LCD_SHIFT;
+		FIO1SET=rs;	  // rs=1 data register register
+		FIO1CLR=rw;	  //  R/W=0 Write operation
+		FIO1SET=en;	  // Activate Enable
+		MSDelay(10);
+	    FIO1CLR=en;
+		
+	}
+	void MSDelay(unsigned int itime)
+	{
+		unsigned int i,j;
+		for(i=0;i<itime;i++)
+		for(j=0;j<5000;j++);
+
+	}	
+
+
