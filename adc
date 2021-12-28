@@ -1,0 +1,18 @@
+#include "LPC1768_includes.h"
+#include "UART.h"
+#include <stdio.h>
+void main ()
+{
+unsigned int rx,i;
+PINSEL3=0xc0000000; // AD0.5, no burst mode
+AD0CR=0x01200220;
+while((AD0GDR&0x80000000)!=0x80000000);
+rx= (AD0GDR&0x0000fff0);
+rx=rx>>4;
+UartInit(9600); //initialise UART for communication at 9600 baud
+	//while(1)
+	//{	
+		printf("%4d\r\n", rx); //read adc and show it in terminal 
+		for(i=0;i<1000;i++);
+	//}
+}
